@@ -160,6 +160,10 @@
     /* Prevent scrollbars completely */
     scrollbar-width: none;
     -ms-overflow-style: none;
+    /* Enable touch-based interactions */
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
   }
 
   body.no-scroll::-webkit-scrollbar {

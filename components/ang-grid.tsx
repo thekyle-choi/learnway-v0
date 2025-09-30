@@ -36,9 +36,17 @@ export function AngGrid() {
     let autoScrollEnabled = true
     let autoScrollTimeout: NodeJS.Timeout | null = null
     
+    // Touch tracking variables
+    let touchStartY = 0
+    let touchStartTime = 0
+    let lastTouchY = 0
+    let lastTouchTime = 0
+    let isTouching = false
+    
     // 자동 스크롤 속도 상수
     const AUTO_SCROLL_SPEED = 0.5
     const AUTO_SCROLL_RESUME_DELAY = 3000 // 3초 후 자동 스크롤 재개
+    const TOUCH_SENSITIVITY = 0.8 // 터치 감도 (값이 클수록 더 민감)
 
     const animate = () => {
       // Apply damping to velocity
@@ -94,9 +102,80 @@ export function AngGrid() {
       animationFrame = requestAnimationFrame(animate)
     }
 
+    const handleTouchStart = (e: TouchEvent) => {
+      isTouching = true
+      touchStartY = e.touches[0].clientY
+      lastTouchY = touchStartY
+      touchStartTime = Date.now()
+      lastTouchTime = touchStartTime
+      
+      // 터치 시작 시 자동 스크롤 중지
+      stopAutoScroll()
+      
+      // 현재 속도를 0으로 초기화하여 부드러운 시작
+      velocity = 0
+    }
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (!isTouching) return
+      
+      // 기본 스크롤 동작 방지
+      e.preventDefault()
+      
+      const currentY = e.touches[0].clientY
+      const currentTime = Date.now()
+      
+      // 이동 거리 계산 (Y축 반대 방향 - 아래로 드래그하면 위로 스크롤)
+      const deltaY = (lastTouchY - currentY) * TOUCH_SENSITIVITY
+      
+      // 속도에 추가
+      velocity += deltaY
+      
+      // 마지막 터치 위치와 시간 업데이트
+      lastTouchY = currentY
+      lastTouchTime = currentTime
+      
+      // 애니메이션 시작
+      cancelAnimationFrame(animationFrame)
+      animationFrame = requestAnimationFrame(animate)
+    }
+
+    const handleTouchEnd = (e: TouchEvent) => {
+      if (!isTouching) return
+      
+      isTouching = false
+      
+      const endTime = Date.now()
+      const timeDiff = endTime - lastTouchTime
+      const touchDuration = endTime - touchStartTime
+      
+      // 관성 스크롤 적용 (빠른 스와이프 감지)
+      if (timeDiff < 100 && touchDuration < 300) {
+        const touchDistance = lastTouchY - touchStartY
+        const swipeVelocity = (touchDistance / touchDuration) * TOUCH_SENSITIVITY * 10
+        
+        // 관성 속도 추가
+        velocity += swipeVelocity
+        
+        // 애니메이션 시작
+        cancelAnimationFrame(animationFrame)
+        animationFrame = requestAnimationFrame(animate)
+      }
+      
+      // 자동 스크롤 재개 타이머 시작
+      stopAutoScroll()
+    }
+
     window.addEventListener("wheel", handleWheel, { passive: false })
+    window.addEventListener("touchstart", handleTouchStart, { passive: false })
+    window.addEventListener("touchmove", handleTouchMove, { passive: false })
+    window.addEventListener("touchend", handleTouchEnd, { passive: false })
+    
     return () => {
       window.removeEventListener("wheel", handleWheel)
+      window.removeEventListener("touchstart", handleTouchStart)
+      window.removeEventListener("touchmove", handleTouchMove)
+      window.removeEventListener("touchend", handleTouchEnd)
       cancelAnimationFrame(animationFrame)
       cancelAnimationFrame(autoScrollFrame)
       if (autoScrollTimeout) {
