@@ -32,6 +32,13 @@ export function AngGrid() {
     let accumulatedScroll = 0
     let velocity = 0
     let animationFrame: number
+    let autoScrollFrame: number
+    let autoScrollEnabled = true
+    let autoScrollTimeout: NodeJS.Timeout | null = null
+    
+    // 자동 스크롤 속도 상수
+    const AUTO_SCROLL_SPEED = 0.5
+    const AUTO_SCROLL_RESUME_DELAY = 3000 // 3초 후 자동 스크롤 재개
 
     const animate = () => {
       // Apply damping to velocity
@@ -46,8 +53,38 @@ export function AngGrid() {
       }
     }
 
+    const autoScroll = () => {
+      if (autoScrollEnabled) {
+        accumulatedScroll += AUTO_SCROLL_SPEED
+        scrollProgress.set(accumulatedScroll)
+        autoScrollFrame = requestAnimationFrame(autoScroll)
+      }
+    }
+
+    // 초기 자동 스크롤 시작
+    autoScrollFrame = requestAnimationFrame(autoScroll)
+
+    const stopAutoScroll = () => {
+      autoScrollEnabled = false
+      cancelAnimationFrame(autoScrollFrame)
+      
+      // 기존 타이머 취소
+      if (autoScrollTimeout) {
+        clearTimeout(autoScrollTimeout)
+      }
+      
+      // 일정 시간 후 자동 스크롤 재개
+      autoScrollTimeout = setTimeout(() => {
+        autoScrollEnabled = true
+        autoScrollFrame = requestAnimationFrame(autoScroll)
+      }, AUTO_SCROLL_RESUME_DELAY)
+    }
+
     const handleWheel = (e: WheelEvent) => {
       e.preventDefault()
+
+      // 자동 스크롤 중지
+      stopAutoScroll()
 
       // Add to velocity for smooth acceleration
       velocity += e.deltaY * 0.18
@@ -61,6 +98,10 @@ export function AngGrid() {
     return () => {
       window.removeEventListener("wheel", handleWheel)
       cancelAnimationFrame(animationFrame)
+      cancelAnimationFrame(autoScrollFrame)
+      if (autoScrollTimeout) {
+        clearTimeout(autoScrollTimeout)
+      }
     }
   }, [scrollProgress])
 
