@@ -1,0 +1,391 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* ANG Studio design system - black canvas with neon accents */
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+
+  /* Neon accent colors for project tiles */
+  --neon-green: #00f85a;
+  --neon-orange: #ff5a1f;
+  --neon-cyan: #87e6ef;
+  --neon-lilac: #b9a8c9;
+
+  /* Spacing system for masonry grid */
+  --gap-xs: 12px;
+  --gap-sm: 16px;
+  --gap: 24px;
+  --gap-lg: 32px;
+
+  /* Column animation ranges from ANG Studio spec */
+  --mobile-range: 10px;
+  --tablet-range: 5px;
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.145 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.145 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.985 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.396 0.141 25.723);
+  --destructive-foreground: oklch(0.637 0.237 25.331);
+  --border: oklch(0.269 0 0);
+  --input: oklch(0.269 0 0);
+  --ring: oklch(0.439 0 0);
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(0.269 0 0);
+  --sidebar-ring: oklch(0.439 0 0);
+}
+
+@theme inline {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Custom color utilities for neon accents */
+  --color-neon-green: var(--neon-green);
+  --color-neon-orange: var(--neon-orange);
+  --color-neon-cyan: var(--neon-cyan);
+  --color-neon-lilac: var(--neon-lilac);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  /* Prevent any scrolling on html and body for fixed viewport */
+  html,
+  body {
+    @apply bg-black text-foreground font-sans antialiased;
+    height: 100vh;
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+    /* Hide cursor for custom cursor effect on desktop only */
+    cursor: none;
+    /* Prevent scrollbars completely */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar {
+    display: none;
+  }
+
+  body {
+    /* Show default cursor on mobile/touch devices */
+    @media (max-width: 767px), (hover: none) {
+      cursor: auto;
+    }
+  }
+
+  /* Custom cursor implementation */
+  .cursor-dot {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 8px;
+    height: 8px;
+    background: white;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    transition: transform 0.1s ease;
+  }
+
+  .cursor-dot.hover {
+    transform: scale(2);
+    background: var(--neon-green);
+  }
+
+  /* Responsive typography scale for editorial design */
+  .text-display {
+    font-size: clamp(2.5rem, 8vw, 7.5rem);
+    line-height: 0.9;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .text-headline {
+    font-size: clamp(1.5rem, 5vw, 3rem);
+    line-height: 1.1;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  /* Responsive masonry grid utilities */
+  .masonry-grid {
+    column-count: 2;
+    column-gap: var(--gap-sm);
+    column-fill: balance;
+  }
+
+  @media (min-width: 640px) {
+    .masonry-grid {
+      column-gap: var(--gap);
+    }
+  }
+
+  @media (min-width: 768px) {
+    .masonry-grid {
+      column-count: 3;
+      column-gap: var(--gap);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .masonry-grid {
+      column-count: 4;
+      column-gap: var(--gap-lg);
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .masonry-grid {
+      column-count: 5;
+      column-gap: var(--gap-lg);
+    }
+  }
+
+  .masonry-item {
+    break-inside: avoid;
+    margin-bottom: var(--gap-sm);
+  }
+
+  @media (min-width: 640px) {
+    .masonry-item {
+      margin-bottom: var(--gap);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .masonry-item {
+      margin-bottom: var(--gap-lg);
+    }
+  }
+
+  /* Responsive column animation ranges from ANG Studio spec */
+  .column-track {
+    will-change: transform;
+  }
+
+  /* Responsive animation ranges */
+  @media (max-width: 640px) {
+    .column-track {
+      transform: translateY(var(--mobile-range)) !important;
+    }
+  }
+
+  @media (min-width: 641px) and (max-width: 1024px) {
+    .column-track {
+      transform: translateY(var(--tablet-range)) !important;
+    }
+  }
+}
+
+/* Smooth page transitions */
+@layer utilities {
+  .page-transition {
+    animation: fadeIn 0.4s cubic-bezier(0.22, 0.76, 0.27, 0.99);
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Enhanced stagger animations with better easing */
+  .stagger-item {
+    opacity: 0;
+    animation: staggerIn 0.6s cubic-bezier(0.22, 0.76, 0.27, 0.99) forwards;
+  }
+
+  @keyframes staggerIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px) scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  /* Refined hover effects with better performance */
+  .tile-hover {
+    transition: transform 0.4s cubic-bezier(0.22, 0.76, 0.27, 0.99), box-shadow 0.4s
+      cubic-bezier(0.22, 0.76, 0.27, 0.99), filter 0.4s cubic-bezier(0.22, 0.76, 0.27, 0.99);
+    will-change: transform;
+  }
+
+  /* Only apply hover effects on devices that support hover */
+  @media (hover: hover) {
+    .tile-hover:hover {
+      transform: translateY(-6px) scale(1.02);
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+      filter: brightness(1.05);
+    }
+  }
+
+  /* Magnetic hover effect for interactive elements */
+  .magnetic-hover {
+    transition: transform 0.2s cubic-bezier(0.22, 0.76, 0.27, 0.99);
+  }
+
+  @media (hover: hover) {
+    .magnetic-hover:hover {
+      transform: scale(1.05);
+    }
+  }
+
+  /* Smooth text reveal animations */
+  .text-reveal {
+    overflow: hidden;
+  }
+
+  .text-reveal-item {
+    display: inline-block;
+    opacity: 0;
+    transform: translateY(100%);
+    animation: textReveal 0.8s cubic-bezier(0.22, 0.76, 0.27, 0.99) forwards;
+  }
+
+  @keyframes textReveal {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Reduced motion support */
+  @media (prefers-reduced-motion: reduce) {
+    .tile-hover,
+    .magnetic-hover,
+    .stagger-item,
+    .text-reveal-item {
+      animation: none;
+      transition: none;
+    }
+
+    .tile-hover:hover {
+      transform: none;
+      box-shadow: none;
+      filter: none;
+    }
+
+    /* Enhanced reduced motion support for wheel-based animations */
+    .column-track {
+      transform: none !important;
+    }
+
+    .scroll-canvas {
+      position: static !important;
+      height: auto !important;
+    }
+
+    /* Allow scrolling when reduced motion is preferred */
+    html,
+    body {
+      overflow: auto;
+      position: static;
+      height: auto;
+    }
+  }
+}
