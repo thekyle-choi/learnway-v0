@@ -19,76 +19,109 @@ Package manager: This project uses `pnpm` (see pnpm-lock.yaml), but `npm` also w
 
 ### Core Animation System
 
-The centerpiece is a **wheel-controlled infinite scroll animation** for the homepage gallery:
+The homepage features a **wheel-controlled infinite scroll animation** for the gallery:
 
-1. **ScrollProgressProvider** ([components/scroll-canvas.tsx](components/scroll-canvas.tsx)) wraps the gallery and provides scroll progress context
-2. **useWheelProgress** hook ([hooks/use-wheel-progress.ts](hooks/use-wheel-progress.ts)) converts mouse wheel events into smooth progress values (0 to maxProgress) with velocity tracking, damping, and inertia
-3. **ColumnGrid** ([components/column-grid.tsx](components/column-grid.tsx)) renders 4 columns of project tiles that translate vertically based on scroll progress - alternating columns move in opposite directions
-4. Projects are distributed across columns in round-robin fashion and repeated 3x per column to create infinite scroll effect
+1. **AngGrid** ([components/ang-grid.tsx](components/ang-grid.tsx)) - Main homepage gallery component that uses Framer Motion's `useMotionValue` and `useTransform` for smooth infinite scrolling
+2. Wheel events are captured with velocity and damping for natural scroll physics (0.92 damping factor, 0.18 velocity multiplier)
+3. **4 columns** of project tiles that translate vertically - alternating columns move in opposite directions (even columns up, odd columns down)
+4. Each column renders 3 repetitions of projects for seamless infinite scroll effect
+5. Column speed: 0.6x multiplier on scroll progress
 
-Key parameters in [app/page.tsx](app/page.tsx):
-- `sensitivity={0.002}` - How much wheel input affects scroll progress
-- `maxProgress={3}` - Maximum scroll range (projects repeat to fill this)
+Alternative implementation exists:
+- **ScrollProgressProvider** ([components/features/gallery/scroll-canvas.tsx](components/features/gallery/scroll-canvas.tsx)) provides scroll progress context
+- **useWheelProgress** hook ([hooks/use-wheel-progress.ts](hooks/use-wheel-progress.ts)) converts wheel events to smooth progress values with configurable sensitivity, damping, and inertia
+- **ColumnGrid** ([components/features/gallery/column-grid.tsx](components/features/gallery/column-grid.tsx)) - 5-column implementation using centralized data
 
-### File Structure
+### Data Architecture
+
+**Centralized data layer** introduced in refactored structure:
+
+- **[data/projects.ts](data/projects.ts)** - Single source of truth for all project data
+  - `projects[]` - Gallery tile data (15 projects with id, title, type, images, colors, aspect ratios)
+  - `projectDetails{}` - Project detail page content (5 detailed projects with descriptions, services, galleries)
+- **[data/constants.ts](data/constants.ts)** - Application constants
+  - `ANIMATION` - Animation configuration (easing curves, speeds, sensitivities)
+  - `NAV_ITEMS` - Navigation menu structure
+  - `GRID` - Grid layout parameters (columns, repetitions)
+- **[types/index.ts](types/index.ts)** - TypeScript type definitions
+  - `Project`, `ProjectDetail`, `ProjectDataMap` interfaces
+
+To add/modify projects: Update `data/projects.ts` in both `projects` array (for gallery) and `projectDetails` object (for detail pages).
+
+### Component Organization
+
+Feature-based structure following Next.js best practices:
 
 ```
-app/
-  ├── page.tsx              - Homepage with ColumnGrid gallery
-  ├── layout.tsx            - Root layout with fonts and analytics
-  ├── work/[slug]/page.tsx  - Dynamic project detail pages
-  ├── about/page.tsx        - About page
-  └── contact/page.tsx      - Contact page
-
 components/
-  ├── scroll-canvas.tsx     - ScrollProgressProvider context
-  ├── column-grid.tsx       - Main gallery grid with columns
-  ├── project-tile.tsx      - Individual project tile component
-  ├── project-detail.tsx    - Project detail page layout
-  ├── navigation.tsx        - Site navigation (fixed header)
-  ├── custom-cursor.tsx     - Custom cursor effect
-  └── ui/                   - shadcn/ui components
-
-hooks/
-  ├── use-wheel-progress.ts - Core wheel scroll hook
-  ├── use-scroll-progress.ts
-  ├── use-reduced-motion.ts - Respects prefers-reduced-motion
-  └── use-mobile.ts         - Mobile detection
+  ├── features/                    # Feature-specific components
+  │   ├── gallery/                 # Gallery/homepage components
+  │   │   ├── column-grid.tsx      # 5-column grid with centralized data
+  │   │   ├── scroll-canvas.tsx    # ScrollProgressProvider context
+  │   │   └── project-tile.tsx     # Individual project tile
+  │   ├── navigation/              # Navigation components
+  │   │   └── navigation.tsx       # Main site navigation with mobile menu
+  │   └── project/                 # Project detail components
+  │       ├── project-detail.tsx   # Project detail page layout
+  │       ├── project-card.tsx     # Project card component
+  │       └── project-navigation.tsx # Project navigation
+  ├── shared/                      # Shared reusable components
+  │   ├── custom-cursor.tsx        # Custom cursor effect (desktop only)
+  │   ├── page-transition.tsx      # Page transition wrapper
+  │   ├── animated-text.tsx        # Text animation with stagger effect
+  │   ├── stagger-container.tsx    # Stagger animation container
+  │   └── stagger-item.tsx         # Individual stagger item
+  └── ui/                          # shadcn/ui primitives only
 ```
+
+**Note**: `components/ang-grid.tsx` is the **active homepage gallery** component. The `features/gallery/` components are an alternative implementation.
 
 ### Path Aliases
 
 TypeScript paths configured in [tsconfig.json](tsconfig.json):
-- `@/*` resolves to project root (e.g., `@/components`, `@/hooks`, `@/lib`)
+- `@/*` resolves to project root (e.g., `@/components`, `@/data`, `@/types`)
 
 ### Styling
 
 - **Tailwind CSS v4** with PostCSS
 - **Dark theme** enforced in root layout (`<html className="dark">`)
-- Global styles in [app/globals.css](app/globals.css)
+- Global styles in [app/globals.css](app/globals.css) - single source for all styles
 - Uses **Geist Sans** and **Geist Mono** fonts from `geist` package
 - shadcn/ui components configured with "new-york" style ([components.json](components.json))
+- Custom CSS classes: `.masonry-item`, `.tile-hover`, `.stagger-item`, `.magnetic-hover`
 
-### Data
+### Hooks
 
-Project data is hardcoded in:
-- Gallery tiles: [components/column-grid.tsx](components/column-grid.tsx) (~line 9)
-- Detail pages: [app/work/[slug]/page.tsx](app/work/[slug]/page.tsx) (~line 8)
-
-To add/modify projects, update both locations. In a real app this would come from a CMS/API.
+Custom hooks organized in [hooks/](hooks/):
+- `use-wheel-progress.ts` - Configurable wheel scroll hook with velocity tracking
+- `use-scroll-progress.ts` - Scroll position tracking
+- `use-reduced-motion.ts` - Respects `prefers-reduced-motion` accessibility setting
+- `use-mobile.ts` - Mobile device detection
+- `use-mobile-shadcn.ts`, `use-toast-shadcn.ts` - shadcn/ui hooks (moved from components/ui)
 
 ## Key Dependencies
 
 - **next**: 14.2.16 (App Router)
-- **framer-motion**: Animation library for smooth transitions
+- **framer-motion**: Animation library for smooth transitions and motion values
 - **@radix-ui/react-***: Accessible UI primitives (accordion, dialog, etc.)
 - **lucide-react**: Icon library
 - **react-hook-form** + **zod**: Form handling and validation
 - **next-themes**: Theme management (currently forced to dark)
+- **Tailwind CSS v4** with `@tailwindcss/postcss`
 
 ## Important Notes
 
 - The wheel scroll system prevents default scroll behavior - users navigate via mouse wheel with custom physics
 - All animations respect `prefers-reduced-motion` via [hooks/use-reduced-motion.ts](hooks/use-reduced-motion.ts)
-- Project detail pages use static generation via `generateStaticParams()`
-- Custom cursor ([components/custom-cursor.tsx](components/custom-cursor.tsx)) hides default cursor on desktop
+- Project detail pages use static generation via `generateStaticParams()` (5 projects: neon-identity, mobile-app, editorial-layout, web-interface, product-shots)
+- Custom cursor ([components/shared/custom-cursor.tsx](components/shared/custom-cursor.tsx)) hides default cursor on desktop
+- Images use `unoptimized: true` in [next.config.mjs](next.config.mjs)
+- TypeScript and ESLint errors are ignored during builds (see next.config.mjs)
+- Remote images from `images.unsplash.com` are allowed
+- Navigation header uses `mix-blend-mode: difference` for visual effect over content
+
+## Configuration
+
+- Next.js config: [next.config.mjs](next.config.mjs) - Disables image optimization, allows Unsplash images
+- TypeScript config: [tsconfig.json](tsconfig.json) - Strict mode enabled, uses ES6 target
+- Package manager: `pnpm@9.12.1` (specified in package.json)

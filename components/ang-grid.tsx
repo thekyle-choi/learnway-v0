@@ -1,99 +1,218 @@
 "use client"
 
-import { useEffect, useState, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
+import { motion, useMotionValue, useTransform } from "framer-motion"
 import Image from "next/image"
 import Link from "next/link"
+import { projects } from "@/data/projects"
 
-const projects = [
-  { id: 1, src: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&q=80", title: "Design Work 1" },
-  { id: 2, src: "https://images.unsplash.com/photo-1557180295-76eee20ae8aa?w=800&q=80", title: "Design Work 2" },
-  { id: 3, src: "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=800&q=80", title: "Design Work 3" },
-  { id: 4, src: "https://images.unsplash.com/photo-1558403194-611308249627?w=800&q=80", title: "Design Work 4" },
-  { id: 5, src: "https://images.unsplash.com/photo-1499951360447-b19be8fe80f5?w=800&q=80", title: "Design Work 5" },
-  { id: 6, src: "https://images.unsplash.com/photo-1559028012-481c04fa702d?w=800&q=80", title: "Design Work 6" },
-  { id: 7, src: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80", title: "Design Work 7" },
-  { id: 8, src: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=80", title: "Design Work 8" },
-  { id: 9, src: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80", title: "Design Work 9" },
-  { id: 10, src: "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=800&q=80", title: "Design Work 10" },
-  { id: 11, src: "https://images.unsplash.com/photo-1551650975-87deedd944c3?w=800&q=80", title: "Design Work 11" },
-  { id: 12, src: "https://images.unsplash.com/photo-1511818966892-d7d671e672a2?w=800&q=80", title: "Design Work 12" },
-  { id: 13, src: "https://images.unsplash.com/photo-1626544827763-d516dce335e2?w=800&q=80", title: "Design Work 13" },
-  { id: 14, src: "https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=800&q=80", title: "Design Work 14" },
-  { id: 15, src: "https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=800&q=80", title: "Design Work 15" },
-  { id: 16, src: "https://images.unsplash.com/photo-1604076913837-52ab5629fba9?w=800&q=80", title: "Design Work 16" },
-]
+// 그리드에 표시할 프로젝트 데이터 (src와 id 매핑)
+const gridProjects = projects.map((project) => ({
+  id: project.id,
+  src: project.type === "image" ? project.src : undefined,
+  color: project.type === "color" ? project.color : undefined,
+  title: project.title,
+  type: project.type,
+}))
 
 export function AngGrid() {
-  const [scrollY, setScrollY] = useState(0)
+  const scrollProgress = useMotionValue(0)
+  const [isAnimating, setIsAnimating] = useState(true)
 
+  // Trigger animation on mount (when returning from About page)
   useEffect(() => {
-    const handleScroll = () => {
-      setScrollY(window.scrollY)
-    }
-
-    window.addEventListener("scroll", handleScroll, { passive: true })
-    return () => window.removeEventListener("scroll", handleScroll)
+    setIsAnimating(true)
+    const timer = setTimeout(() => {
+      setIsAnimating(false)
+    }, 2000) // Animation complete after 2 seconds
+    return () => clearTimeout(timer)
   }, [])
 
-  // Distribute projects into 4 columns
-  const columns = [[], [], [], []] as typeof projects[]
-  projects.forEach((project, index) => {
+  useEffect(() => {
+    let accumulatedScroll = 0
+    let velocity = 0
+    let animationFrame: number
+
+    const animate = () => {
+      // Apply damping to velocity
+      velocity *= 0.92
+      accumulatedScroll += velocity
+
+      scrollProgress.set(accumulatedScroll)
+
+      // Continue animation if there's movement
+      if (Math.abs(velocity) > 0.01) {
+        animationFrame = requestAnimationFrame(animate)
+      }
+    }
+
+    const handleWheel = (e: WheelEvent) => {
+      e.preventDefault()
+
+      // Add to velocity for smooth acceleration
+      velocity += e.deltaY * 0.18
+
+      // Start animation loop
+      cancelAnimationFrame(animationFrame)
+      animationFrame = requestAnimationFrame(animate)
+    }
+
+    window.addEventListener("wheel", handleWheel, { passive: false })
+    return () => {
+      window.removeEventListener("wheel", handleWheel)
+      cancelAnimationFrame(animationFrame)
+    }
+  }, [scrollProgress])
+
+  // Distribute into 4 columns
+  const columns = [[], [], [], []] as typeof gridProjects[]
+  gridProjects.forEach((project, index) => {
     columns[index % 4].push(project)
   })
 
-  // Repeat projects for infinite scroll effect
-  const repeatedColumns = columns.map(col => [...col, ...col, ...col, ...col])
-
   return (
-    <div className="absolute inset-0 w-full">
-      <div className="w-full h-[400vh] relative">
-        <div className="sticky top-0 h-screen w-full overflow-hidden">
-          <div className="absolute inset-0 px-6 md:px-10 lg:px-12 xl:px-16 2xl:px-20">
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-7 lg:gap-8 xl:gap-10 h-full max-w-[1800px] mx-auto">
-              {repeatedColumns.map((columnProjects, columnIndex) => {
-                // 1,3열은 아래로(+), 2,4열은 위로(-)
-                const direction = columnIndex % 2 === 0 ? 1 : -1
-                const speed = 0.25
-                const translateY = direction * scrollY * speed
+    <motion.div
+      className="fixed inset-0 w-full h-screen overflow-hidden"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
+      {/* 헤더 영역을 덮지 않도록 pt-0 제거, 대신 개별 열에서 처리 */}
+      <div className="absolute inset-0 px-6 md:px-10 lg:px-12 xl:px-16 2xl:px-20">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-7 lg:gap-8 xl:gap-10 h-full max-w-[1800px] mx-auto">
+          {columns.map((columnProjects, columnIndex) => {
+            const direction = columnIndex % 2 === 0 ? 1 : -1
 
-                // 각 열의 시작 위치를 다르게
-                // 1,3열(index 0,2): 헤더 아래에서 시작 (80px 아래)
-                // 2,4열(index 1,3): 카드 반이 화면 위로 (-200px)
-                const offsetY = columnIndex % 2 === 0 ? 80 : -200
+            // 0,2열: 헤더 아래 (pt-24)
+            // 1,3열: 헤더와 겹침 (pt-0)
+            const startFromTop = columnIndex % 2 === 0
 
-                return (
-                  <div
-                    key={columnIndex}
-                    className="flex flex-col gap-6 md:gap-7 lg:gap-8 xl:gap-10"
-                    style={{
-                      transform: `translateY(${translateY + offsetY}px)`,
-                      willChange: "transform",
-                    }}
-                  >
-                    {columnProjects.map((project, projectIndex) => (
-                      <Link
-                        key={`${project.id}-${projectIndex}`}
-                        href={`/work/${project.id}`}
-                        className="group relative aspect-[3/4] overflow-hidden rounded-xl bg-gray-900 cursor-pointer transition-transform duration-300 hover:scale-[1.02]"
-                      >
-                        <Image
-                          src={project.src}
-                          alt={project.title}
-                          fill
-                          unoptimized
-                          className="object-cover transition-transform duration-700 group-hover:scale-110"
-                          sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                      </Link>
-                    ))}
-                  </div>
-                )
-              })}
-            </div>
-          </div>
+            return (
+              <InfiniteColumn
+                key={columnIndex}
+                projects={columnProjects}
+                direction={direction}
+                scrollProgress={scrollProgress}
+                startFromTop={startFromTop}
+                columnIndex={columnIndex}
+                isAnimating={isAnimating}
+              />
+            )
+          })}
         </div>
       </div>
-    </div>
+    </motion.div>
+  )
+}
+
+function InfiniteColumn({
+  projects,
+  direction,
+  scrollProgress,
+  startFromTop,
+  columnIndex,
+  isAnimating,
+}: {
+  projects: typeof gridProjects
+  direction: number
+  scrollProgress: any
+  startFromTop: boolean
+  columnIndex: number
+  isAnimating: boolean
+}) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [columnHeight, setColumnHeight] = useState(2000)
+
+  // 실제 단일 세트 높이 측정
+  useEffect(() => {
+    if (containerRef.current) {
+      const firstSet = containerRef.current.querySelector('[data-set="0"]')
+      if (firstSet) {
+        const height = firstSet.getBoundingClientRect().height
+        setColumnHeight(height)
+      }
+    }
+  }, [])
+
+  // 무한 루프를 위한 y 변환
+  const y = useTransform(scrollProgress, (latest: number) => {
+    const speed = 0.6
+    const travel = direction * latest * speed
+
+    // modulo로 무한 반복
+    const looped = ((travel % columnHeight) + columnHeight) % columnHeight
+
+    // 시작 오프셋 적용
+    // 1,3열: 헤더 아래 시작 (0)
+    // 2,4열: 카드가 절반만 보이도록 음수 오프셋 적용 (카드 높이의 약 절반)
+    const offset = startFromTop ? 96 : -400
+
+    return looped + offset - columnHeight
+  })
+
+  return (
+    <motion.div
+      ref={containerRef}
+      className={`relative h-full ${startFromTop ? 'pt-24' : 'pt-0'}`}
+      style={{ overflow: 'visible' }}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{
+        duration: 0.8,
+        delay: columnIndex * 0.1,
+        ease: [0.22, 0.76, 0.27, 0.99]
+      }}
+    >
+      <motion.div className="flex flex-col" style={{ y }}>
+        {/* 3개 세트 렌더링 - 동일한 margin으로 연결 */}
+        {[0, 1, 2].map((setIndex) => (
+          <div key={setIndex} data-set={setIndex} className="flex flex-col">
+            {projects.map((project, projectIndex) => {
+              const totalIndex = setIndex * projects.length + projectIndex
+              const staggerDelay = isAnimating ? (totalIndex % 8) * 0.05 + columnIndex * 0.02 : 0
+
+              return (
+                <motion.div
+                  key={`${setIndex}-${project.id}-${projectIndex}`}
+                  initial={isAnimating ? { opacity: 0, scale: 0.8, y: 30 } : false}
+                  animate={isAnimating ? { opacity: 1, scale: 1, y: 0 } : false}
+                  transition={{
+                    duration: 0.6,
+                    delay: staggerDelay,
+                    ease: [0.22, 0.76, 0.27, 0.99]
+                  }}
+                  className="mb-6 md:mb-7 lg:mb-8 xl:mb-10"
+                >
+                  <Link
+                    href={`/work/${project.id}`}
+                    className="group relative aspect-[3/4] overflow-hidden rounded-xl cursor-pointer transition-transform duration-300 hover:scale-[1.02] border border-white/20 block"
+                    style={project.type === 'color' ? { backgroundColor: project.color } : { backgroundColor: '#1a1a1a' }}
+                  >
+                    {project.type === 'image' && project.src && (
+                      <Image
+                        src={project.src}
+                        alt={project.title}
+                        fill
+                        unoptimized
+                        className="object-cover transition-transform duration-700 group-hover:scale-110"
+                        sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                      />
+                    )}
+                    {project.type === 'color' && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="text-6xl font-bold opacity-10 mix-blend-overlay text-white">
+                          {project.title.charAt(0)}
+                        </div>
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  </Link>
+                </motion.div>
+              )
+            })}
+          </div>
+        ))}
+      </motion.div>
+    </motion.div>
   )
 }

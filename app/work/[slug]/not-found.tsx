@@ -1,6 +1,6 @@
-import { CustomCursor } from "@/components/custom-cursor"
-import { Navigation } from "@/components/navigation"
-import { AnimatedText } from "@/components/animated-text"
+import { CustomCursor } from "@/components/shared/custom-cursor"
+import { Navigation } from "@/components/features/navigation/navigation"
+import { AnimatedText } from "@/components/shared/animated-text"
 import Link from "next/link"
 
 export default function NotFound() {

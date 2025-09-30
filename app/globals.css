@@ -143,23 +143,26 @@
     @apply border-border outline-ring/50;
   }
 
-  /* Prevent any scrolling on html and body for fixed viewport */
+  /* Default styles for html and body */
   html,
   body {
     @apply bg-black text-foreground font-sans antialiased;
+    /* Hide cursor for custom cursor effect on desktop only */
+    cursor: none;
+  }
+
+  /* Only prevent scrolling on homepage with grid */
+  body.no-scroll {
     height: 100vh;
     overflow: hidden;
     position: fixed;
     width: 100%;
-    /* Hide cursor for custom cursor effect on desktop only */
-    cursor: none;
     /* Prevent scrollbars completely */
     scrollbar-width: none;
     -ms-overflow-style: none;
   }
 
-  html::-webkit-scrollbar,
-  body::-webkit-scrollbar {
+  body.no-scroll::-webkit-scrollbar {
     display: none;
   }
 

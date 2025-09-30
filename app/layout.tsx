@@ -7,8 +7,11 @@ import { Suspense } from "react"
 import "./globals.css"
 
 export const metadata: Metadata = {
-  title: "Creative Studio — Portfolio",
-  description: "Bold minimal portfolio showcasing creative work and editorial design",
+  title: {
+    default: "52g with v0",
+    template: "%s - 52g with v0",
+  },
+  description: "Open Innovation GS - Bold minimal portfolio showcasing creative work and editorial design",
   generator: "v0.app",
 }
 
